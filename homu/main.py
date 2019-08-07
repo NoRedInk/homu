@@ -1012,17 +1012,20 @@ def start_build(state, repo_cfgs, buildbot_slots, logger, db, git_cfg):
     can_try_travis_exemption = False
 
     only_status_builders = True
+    any_buildbot_builders = False
     if 'buildbot' in repo_cfg:
         if state.try_:
             if state.try_choose:
-                builders = (
+                builders += (
                     repo_cfg['buildbot']['try_choosers'][state.try_choose]
                 )
             else:
                 builders += repo_cfg['buildbot']['try_builders']
         else:
             builders += repo_cfg['buildbot']['builders']
-        only_status_builders = False
+        if builders:
+            only_status_builders = False
+            any_buildbot_builders = True
     if 'travis' in repo_cfg:
         builders += ['travis']
         only_status_builders = False
@@ -1070,7 +1073,7 @@ def start_build(state, repo_cfgs, buildbot_slots, logger, db, git_cfg):
 
     state.save()
 
-    if 'buildbot' in repo_cfg:
+    if any_buildbot_builders:
         buildbot_slots[0] = state.merge_sha
 
     logger.info('Starting build of {}/{}#{} on {}: {}'.format(
