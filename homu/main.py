@@ -1015,14 +1015,15 @@ def start_build(state, repo_cfgs, buildbot_slots, logger, db, git_cfg):
     if 'buildbot' in repo_cfg:
         if state.try_:
             if state.try_choose:
-                builders = (
+                builders += (
                     repo_cfg['buildbot']['try_choosers'][state.try_choose]
                 )
             else:
                 builders += repo_cfg['buildbot']['try_builders']
         else:
             builders += repo_cfg['buildbot']['builders']
-        only_status_builders = False
+        if builders:
+            only_status_builders = False
     if 'travis' in repo_cfg:
         builders += ['travis']
         only_status_builders = False
