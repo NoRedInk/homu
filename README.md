@@ -106,7 +106,7 @@ the name of the repository you are configuring homu for.
    - Payload URL: `http://HOST:PORT/github`
    - Content type: `application/json`
    - Secret: The same as `repo.NAME.github.secret` in `cfg.toml`
-   - Events: `Issue Comment`, `Pull Request`, `Push`, `Status`, `Check runs`
+   - Events: `Issue Comment`, `Pull Request`, `Pull Request Review Comments`, `Push`, `Status`, `Check runs`
 
 6. Add a Webhook to your continuous integration service, if necessary. You don't
    need this if using Travis/Appveyor.

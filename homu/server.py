@@ -350,7 +350,36 @@ def github():
                     state.save()
 
                     g.queue_handler()
+    elif event_type == 'pull_request_review':
+        action = info['action']
+        commit_id = info['review']['commit_id']
+        head_sha = info['pull_request']['head']['sha']
 
+        if action == 'submitted' and commit_id == head_sha:
+            pull_num = info['pull_request']['number']
+            body = info['review']['body']
+            username = info['sender']['login']
+
+            state = g.states[repo_label].get(pull_num)
+            if state:
+                state.title = info['pull_request']['title']
+                state.body = info['pull_request']['body']
+
+                if parse_commands(
+                        g.cfg,
+                        body,
+                        username,
+                        repo_cfg,
+                        state,
+                        g.my_username,
+                        g.db,
+                        g.states,
+                        realtime=True,
+                        sha=commit_id,
+                ):
+                    state.save()
+
+                    g.queue_handler()
     elif event_type == 'pull_request':
         action = info['action']
         pull_num = info['number']
