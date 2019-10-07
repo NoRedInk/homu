@@ -94,11 +94,10 @@ class TestAction(unittest.TestCase):
     def test_try_chooser_not_found(self, MockPullReqState):
         state = MockPullReqState()
         action._try(state, 'try', True, TRY_CHOOSER_CONFIG, choose="foo")
-        self.assertTrue(state.try_)
         self.assertEqual(state.try_choose, None)
-        state.init_build_res.assert_called_once_with([])
-        state.save.assert_called_once_with()
-        state.change_labels.assert_called_once_with(LabelEvent.TRY)
+        state.init_build_res.assert_not_called()
+        state.save.assert_not_called()
+        state.change_labels.assert_not_called()
         state.add_comment.assert_called_once_with(":slightly_frowning_face: There is no try chooser foo for this repo, try one of: mac, wpt")
 
     @patch('homu.main.PullReqState')
