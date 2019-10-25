@@ -66,11 +66,9 @@ def rollup(state, word):
 
 
 def _try(state, word, realtime, repo_cfg, choose=None):
-    state.try_ = word == 'try'
-    state.merge_sha = ''
-    state.init_build_res([])
+    is_try = word == 'try'
     state.try_choose = None
-    if choose and state.try_:
+    if choose and is_try:
         try:
             if choose in repo_cfg['buildbot']['try_choosers']:
                 state.try_choose = choose
@@ -80,11 +78,16 @@ def _try(state, word, realtime, repo_cfg, choose=None):
                     .format(choose,
                         ", ".join(repo_cfg['buildbot']['try_choosers'].keys()))
                 )
+                return
         except KeyError:
             if realtime:
                 state.add_comment(
                     ':slightly_frowning_face: This repo does not have try choosers set up'  # noqa
                 )
+
+    state.try_ = is_try
+    state.merge_sha = ''
+    state.init_build_res([])
     state.save()
     if state.try_:
         # `try-` just resets the `try` bit and doesn't correspond to
