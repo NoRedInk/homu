@@ -1,11 +1,13 @@
 # Homu
 
-[![Hommando]][Akemi Homura]
+[![Hommando]][Hommando Source]  
+<sub>[Who's this?][Akemi Homura]</sub>
 
 Homu is a bot that integrates with GitHub and your favorite continuous
 integration service such as [Travis CI], [Appveyor] or [Buildbot].
 
 [Hommando]: https://i.imgur.com/j0jNvHF.png
+[Hommando Source]: https://www.pixiv.net/artworks/19351345
 [Akemi Homura]: https://wiki.puella-magi.net/Homura_Akemi
 [Buildbot]: http://buildbot.net/
 [Travis CI]: https://travis-ci.org/
