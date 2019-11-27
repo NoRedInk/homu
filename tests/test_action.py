@@ -13,7 +13,16 @@ TRY_CHOOSER_CONFIG = {
             ("mac", ["mac-rel", "mac-wpt"]),
             ("wpt", ["linux-wpt-1", "linux-wpt-2"])
         ])
-    }
+    },
+    "try_choosers": [
+        "taskcluster"
+    ],
+}
+
+TRY_CHOOSER_WITHOUT_BUILDBOT_CONFIG = {
+    "try_choosers": [
+        "taskcluster"
+    ],
 }
 
 class TestAction(unittest.TestCase):
@@ -98,7 +107,7 @@ class TestAction(unittest.TestCase):
         state.init_build_res.assert_not_called()
         state.save.assert_not_called()
         state.change_labels.assert_not_called()
-        state.add_comment.assert_called_once_with(":slightly_frowning_face: There is no try chooser foo for this repo, try one of: mac, wpt")
+        state.add_comment.assert_called_once_with(":slightly_frowning_face: There is no try chooser foo for this repo, try one of: taskcluster, mac, wpt")
 
     @patch('homu.main.PullReqState')
     def test_try_chooser_found(self, MockPullReqState):
@@ -106,6 +115,26 @@ class TestAction(unittest.TestCase):
         action._try(state, 'try', True, TRY_CHOOSER_CONFIG, choose="mac")
         self.assertTrue(state.try_)
         self.assertEqual(state.try_choose, "mac")
+        state.init_build_res.assert_called_once_with([])
+        state.save.assert_called_once_with()
+        state.change_labels.assert_called_once_with(LabelEvent.TRY)
+
+    @patch('homu.main.PullReqState')
+    def test_try_chooser_non_buildbot_found(self, MockPullReqState):
+        state = MockPullReqState()
+        action._try(state, 'try', True, TRY_CHOOSER_CONFIG, choose="taskcluster")
+        self.assertTrue(state.try_)
+        self.assertEqual(state.try_choose, "taskcluster")
+        state.init_build_res.assert_called_once_with([])
+        state.save.assert_called_once_with()
+        state.change_labels.assert_called_once_with(LabelEvent.TRY)
+
+    @patch('homu.main.PullReqState')
+    def test_try_chooser_without_buildbot_found(self, MockPullReqState):
+        state = MockPullReqState()
+        action._try(state, 'try', True, TRY_CHOOSER_WITHOUT_BUILDBOT_CONFIG, choose="taskcluster")
+        self.assertTrue(state.try_)
+        self.assertEqual(state.try_choose, "taskcluster")
         state.init_build_res.assert_called_once_with([])
         state.save.assert_called_once_with()
         state.change_labels.assert_called_once_with(LabelEvent.TRY)
