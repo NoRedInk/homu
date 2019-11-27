@@ -69,17 +69,19 @@ def _try(state, word, realtime, repo_cfg, choose=None):
     is_try = word == 'try'
     state.try_choose = None
     if choose and is_try:
-        try:
-            if choose in repo_cfg['buildbot']['try_choosers']:
+        try_choosers = list(repo_cfg.get('try_choosers', []))
+        if 'buildbot' in repo_cfg:
+            try_choosers += list(repo_cfg['buildbot']['try_choosers'].keys())
+        if try_choosers:
+            if choose in try_choosers:
                 state.try_choose = choose
             elif realtime:
                 state.add_comment(
                     ':slightly_frowning_face: There is no try chooser {} for this repo, try one of: {}'  # noqa
-                    .format(choose,
-                        ", ".join(repo_cfg['buildbot']['try_choosers'].keys()))
+                    .format(choose, ", ".join(try_choosers))
                 )
                 return
-        except KeyError:
+        else:
             if realtime:
                 state.add_comment(
                     ':slightly_frowning_face: This repo does not have try choosers set up'  # noqa

@@ -1017,7 +1017,8 @@ def start_build(state, repo_cfgs, buildbot_slots, logger, db, git_cfg):
         if state.try_:
             if state.try_choose:
                 builders += (
-                    repo_cfg['buildbot']['try_choosers'][state.try_choose]
+                    repo_cfg['buildbot']['try_choosers']
+                    .get(state.try_choose, [])
                 )
             else:
                 builders += repo_cfg['buildbot']['try_builders']
