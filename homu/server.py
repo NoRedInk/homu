@@ -901,3 +901,7 @@ def start(cfg, states, queue_handler, repo_cfgs, repos, logger,
     except OSError as e:
         print(e, file=sys.stderr)
         os._exit(1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        os._exit(2)
+
