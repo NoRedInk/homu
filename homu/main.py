@@ -418,6 +418,8 @@ def verify_auth(username, repo_cfg, state, auth, realtime, my_username):
 
 
 def get_words(body, my_username):
+    if body is None:
+        return []
     return list(chain.from_iterable(re.findall(r'\S+', x) for x in body.splitlines() if '@' + my_username in x))  # noqa
 
 
