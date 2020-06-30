@@ -481,6 +481,8 @@ def github():
             state.body = info['pull_request']['body']
             state.base_ref = info['pull_request']['base']['ref']
 
+            state.save()
+
 
         else:
             lazy_debug(logger, lambda: 'Invalid pull_request action: {}'.format(action))  # noqa
