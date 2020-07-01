@@ -15,7 +15,6 @@ import traceback
 import sqlite3
 import requests
 from contextlib import contextmanager
-from itertools import chain
 from queue import Queue
 import os
 import sys
@@ -420,9 +419,11 @@ def verify_auth(username, repo_cfg, state, auth, realtime, my_username):
 def get_words(body, my_username):
     if body is None:
         return []
-    return list(chain.from_iterable(re.findall(r'\S+', x) for x in body.splitlines() if '@' + my_username in x))  # noqa
+    lines = body.lower().splitlines()
+    interesting_lines = [line for line in lines if "@" + my_username.lower() in line]
+    return [x.split() for x in interesting_lines]
 
-
+  
 def parse_commands(cfg, body, username, repo_cfg, state, my_username, db,
                    states, *, realtime=False, sha=''):
     state_changed = False
