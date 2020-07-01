@@ -475,6 +475,15 @@ def github():
 
             state.save()
 
+        elif action == 'edited':
+            state = g.states[repo_label][pull_num]
+            state.title = info['pull_request']['title']
+            state.body = info['pull_request']['body']
+            state.base_ref = info['pull_request']['base']['ref']
+
+            state.save()
+
+
         else:
             lazy_debug(logger, lambda: 'Invalid pull_request action: {}'.format(action))  # noqa
 
