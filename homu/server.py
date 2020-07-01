@@ -475,6 +475,15 @@ def github():
 
             state.save()
 
+        elif action == 'edited':
+            state = g.states[repo_label][pull_num]
+            state.title = info['pull_request']['title']
+            state.body = info['pull_request']['body']
+            state.base_ref = info['pull_request']['base']['ref']
+
+            state.save()
+
+
         else:
             lazy_debug(logger, lambda: 'Invalid pull_request action: {}'.format(action))  # noqa
 
@@ -901,3 +910,7 @@ def start(cfg, states, queue_handler, repo_cfgs, repos, logger,
     except OSError as e:
         print(e, file=sys.stderr)
         os._exit(1)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        os._exit(2)
+
