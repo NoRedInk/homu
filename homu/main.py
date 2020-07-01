@@ -417,11 +417,13 @@ def verify_auth(username, repo_cfg, state, auth, realtime, my_username):
 
 
 def get_words(body, my_username):
+    if body is None:
+        return []
     lines = body.lower().splitlines()
     interesting_lines = [line for line in lines if "@" + my_username.lower() in line]
     return [x.split() for x in interesting_lines]
 
-
+  
 def parse_commands(cfg, body, username, repo_cfg, state, my_username, db,
                    states, *, realtime=False, sha=''):
     state_changed = False
@@ -674,7 +676,19 @@ def branch_equal_to_merge(git_cmd, state, branch):
 
 def create_merge(state, repo_cfg, branch, logger, git_cfg,
                  ensure_merge_equal=False):
-    base_sha = state.get_repo().ref('heads/' + state.base_ref).object.sha
+    ref = state.get_repo().ref('heads/' + state.base_ref)
+    if ref is None:
+        logger.warning(f"FIXME: ref not found [{'heads/' + state.base_ref}], attempting to retry in 5 seconds")
+        import time
+        time.sleep(5)
+        ref = state.get_repo().ref('heads/' + state.base_ref)
+        if ref is None:
+            logger.warning(f"FIXME: ref not found [{'heads/' + state.base_ref}]")
+            raise Exception(f"could not find ref [{'heads/' + state.base_ref}]")
+        else:
+            logger.warning(f"FIXME: could find ref after waiting")
+
+    base_sha = ref.object.sha
 
     state.refresh()
 
@@ -868,6 +882,9 @@ def do_exemption_merge(state, logger, repo_cfg, git_cfg, url, check_merge,
         print('* Unable to create a merge commit for the exempted PR: {}'.format(state))  # noqa
         traceback.print_exc()
         return False
+    except Exception as e:
+        logger.error(e)
+        return False
 
     if not merge_sha:
         return False
@@ -966,7 +983,20 @@ def try_status_exemption(state, logger, repo_cfg, git_cfg):
         return False
 
     # is the PR fully rebased?
-    base_sha = state.get_repo().ref('heads/' + state.base_ref).object.sha
+
+    ref = state.get_repo().ref('heads/' + state.base_ref)
+    if ref is None:
+        logger.warning(f"FIXME: ref not found [{'heads/' + state.base_ref}], attempting to retry in 5 seconds")
+        import time
+        time.sleep(5)
+        ref = state.get_repo().ref('heads/' + state.base_ref)
+        if ref is None:
+            logger.warning(f"FIXME: ref not found [{'heads/' + state.base_ref}]")
+            raise Exception(f"could not find ref [{'heads/' + state.base_ref}]")
+        else:
+            logger.warning(f"FIXME: could find ref after waiting")
+
+    base_sha = ref.object.sha
     if pull_is_rebased(state, repo_cfg, git_cfg, base_sha):
         return do_exemption_merge(state, logger, repo_cfg, git_cfg, '', False,
                                   "pull fully rebased and already tested")
@@ -1057,17 +1087,21 @@ def start_build(state, repo_cfgs, buildbot_slots, logger, db, git_cfg):
 
     lazy_debug(logger, lambda: "start_build: builders={!r}".format(builders))
 
-    if (only_status_builders and state.approved_by and
-            repo_cfg.get('status_based_exemption', False)):
-        if can_try_travis_exemption:
-            if try_travis_exemption(state, logger, repo_cfg, git_cfg):
+    try:
+        if (only_status_builders and state.approved_by and
+                repo_cfg.get('status_based_exemption', False)):
+            if can_try_travis_exemption:
+                if try_travis_exemption(state, logger, repo_cfg, git_cfg):
+                    return True
+            if try_status_exemption(state, logger, repo_cfg, git_cfg):
                 return True
-        if try_status_exemption(state, logger, repo_cfg, git_cfg):
-            return True
 
-    merge_sha = create_merge(state, repo_cfg, branch, logger, git_cfg)
-    lazy_debug(logger, lambda: "start_build: merge_sha={}".format(merge_sha))
-    if not merge_sha:
+        merge_sha = create_merge(state, repo_cfg, branch, logger, git_cfg)
+        lazy_debug(logger, lambda: "start_build: merge_sha={}".format(merge_sha))
+        if not merge_sha:
+            return False
+    except Exception as e:
+        logger.error(e)
         return False
 
     state.init_build_res(builders)
@@ -1127,7 +1161,19 @@ def start_rebuild(state, repo_cfgs):
     if not builders or not succ_builders:
         return False
 
-    base_sha = state.get_repo().ref('heads/' + state.base_ref).object.sha
+    ref = state.get_repo().ref('heads/' + state.base_ref)
+    if ref is None:
+        print(f"FIXME: ref not found [{'heads/' + state.base_ref}], attempting to retry in 5 seconds")
+        import time
+        time.sleep(5)
+        ref = state.get_repo().ref('heads/' + state.base_ref)
+        if ref is None:
+            print(f"FIXME: ref not found [{'heads/' + state.base_ref}]")
+            return False
+        else:
+            print(f"FIXME: could find ref after waiting")
+
+    base_sha = ref.object.sha
     _parents = state.get_repo().commit(state.merge_sha).parents
     parent_shas = [x['sha'] for x in _parents]
 
